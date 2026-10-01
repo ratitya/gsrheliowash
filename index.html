@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1f2e">
+<title>GSR HelioWash</title>
+<link rel="stylesheet" href="style.css">
+<style>.hist{display:flex;align-items:center;justify-content:space-between;gap:8px}</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<main id="login">
+  <section class="hero">
+    <img class="logo" src="logo_1.png" alt="Logo GSR HelioWash">
+    <h1>GSR HELIOWASH TECHNOLOGY</h1>
+    <p>by galihsanyananratitya</p>
+  </section>
+  <section class="login-side">
+    <form class="login-card" id="loginForm" novalidate>
+      <h2>Masuk ke GSR HelioWash</h2>
+      <p>Gunakan akun yang terdaftar.</p>
+      <label class="field"><span>Id User:</span><input id="email" type="email" placeholder="nama@email.com" autocomplete="email"></label>
+      <label class="field"><span>Password:</span><input id="pass" type="password" autocomplete="current-password"></label>
+      <div class="err" id="loginErr" role="alert" hidden>Isi email dan password terlebih dahulu.</div>
+      <button class="btn primary" type="submit">Masuk</button>
+    </form>
+  </section>
+</main>
+
+<!-- APLIKASI -->
+<div id="app" hidden>
+  <aside class="side">
+    <div class="brand"><img class="logo" src="logo_2.png" alt="Logo GSR HelioWash"><div>GSR HelioWash<small>Solar panel cleaning</small></div></div>
+    <nav class="nav" role="tablist" aria-label="Menu utama">
+      <button role="tab" data-tab="dash" aria-selected="true"><span class="ic">📊</span>Dashboard</button>
+      <button role="tab" data-tab="log" aria-selected="false"><span class="ic">📋</span>Data Log</button>
+      <button role="tab" data-tab="auto" aria-selected="false"><span class="ic">⏰</span>Otomatis</button>
+    </nav>
+    <div class="side-foot">
+      <button class="btn line-red" data-open="d-logout">Keluar</button>
+      <small style="color:var(--mute);text-align:center">by galihsanyananratitya</small>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h2 id="title">Dashboard</h2>
+      <button class="btn line-red sm m-out" data-open="d-logout">Keluar</button>
+      <button class="pill" id="pill" data-open="d-wifi"><i></i><span id="pillTxt">Mode Demo</span></button>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section class="tab on" id="tab-dash">
+      <div class="grid">
+        <div class="reads">
+          <div class="read v"><div class="lb">Tegangan</div><div class="val num"><span id="mv">--</span><small>V</small></div></div>
+          <div class="read i"><div class="lb">Arus</div><div class="val num"><span id="mi">--</span><small>A</small></div></div>
+          <div class="read t"><div class="lb">Suhu panel</div><div class="val num"><span id="mt">--</span><small>°C</small></div></div>
+        </div>
+
+        <div class="card live-card">
+          <h3>Grafik langsung <span class="live-tag" id="liveTag">Diperbarui tiap 1 detik</span></h3>
+          <div class="chart"><canvas id="chart" aria-label="Grafik tegangan, arus, dan suhu secara langsung"></canvas></div>
+          <div class="chips">
+            <button class="chip v" data-s="v" aria-pressed="true">Tegangan <b class="num" id="cv">--</b></button>
+            <button class="chip i" data-s="i" aria-pressed="true">Arus <b class="num" id="ci">--</b></button>
+            <button class="chip t" data-s="t" aria-pressed="true">Suhu <b class="num" id="ct">--</b></button>
+          </div>
+        </div>
+
+        <div class="side-col">
+          <div class="card">
+            <h3>Kontrol manual</h3>
+            <div class="ctl" id="ctlMotor"><div class="ic">⚙️</div><div class="info"><b>Motor DC</b><small>MATI</small></div>
+              <label class="sw"><input type="checkbox" id="swMotor" aria-label="Motor DC"><i></i></label></div>
+            <div class="ctl" id="ctlPump"><div class="ic">💧</div><div class="info"><b>Pompa air</b><small>MATI</small></div>
+              <label class="sw"><input type="checkbox" id="swPump" aria-label="Pompa air"><i></i></label></div>
+          </div>
+          <div class="card">
+            <h3>Status pembersihan</h3>
+            <p class="idle" id="idle">Tidak ada pembersihan berjalan.</p>
+            <div id="cleaning" hidden>
+              <div class="clean-top"><span style="color:var(--mute)">Siklus</span><strong class="num" id="cyc">0 / 0</strong></div>
+              <div class="bar"><i id="cbar"></i></div>
+            </div>
+            <div class="row">
+              <button class="btn primary" id="btnStart">Mulai 3 siklus</button>
+              <button class="btn danger" id="btnStop" hidden>Stop</button>
+              <button class="btn" id="btnLimit" hidden>Limit switch</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DATA LOG -->
+    <section class="tab" id="tab-log">
+      <div class="tools">
+        <div class="info"><b>Data log 24 jam terakhir</b><br><small id="logSub">0 entri</small></div>
+        <button class="btn sm" data-open="d-hist">Riwayat</button>
+        <button class="btn sm primary" id="btnPdf">Export PDF</button>
+      </div>
+      <div class="table"><div class="scroll">
+        <div class="tr h"><span>No</span><span class="d">Tanggal</span><span>Waktu</span><span>V</span><span>A</span><span>°C</span></div>
+        <div id="logBody"></div>
+        <div class="empty" id="logEmpty">Data pertama akan muncul sebentar lagi.<br><small>Pastikan ESP32 terhubung.</small></div>
+      </div></div>
+    </section>
+
+    <!-- OTOMATIS -->
+    <section class="tab" id="tab-auto">
+      <div class="sched" id="sched"></div>
+    </section>
+  </div>
+</div>
+
+<!-- DIALOG -->
+<dialog id="d-wifi">
+  <h3>Hubungkan ke ESP32</h3>
+  <p style="font-weight:700;color:var(--ink);margin-bottom:4px">HiveMQ (lewat internet)</p>
+  <p style="font-size:13px;margin-bottom:12px">Akun HiveMQ sudah diatur di kode dan tersambung otomatis setelah login.</p>
+  <div class="err" id="mqErr" role="alert" hidden></div>
+  <button class="btn primary" id="btnMqtt" style="width:100%">Hubungkan HiveMQ</button>
+</dialog>
+
+<dialog id="d-sched">
+  <h3 id="schedTitle">Jadwal pembersihan</h3>
+  <label class="field"><span>Waktu</span><input id="sTime" type="time" value="06:00"></label>
+  <label class="field"><span>Jumlah siklus (bolak-balik)</span><input id="sCyc" type="number" min="1" value="1"></label>
+  <div class="acts"><button class="btn ghost" data-close>Batal</button><button class="btn primary" id="btnSaveSched">Simpan</button></div>
+</dialog>
+
+<dialog id="d-logout">
+  <h3>Keluar dari akun?</h3>
+  <p id="who"></p>
+  <div class="acts"><button class="btn ghost" data-close>Batal</button><button class="btn danger" id="btnLogout">Keluar</button></div>
+</dialog>
+
+<dialog id="d-hist">
+  <h3>Riwayat pemantauan</h3>
+  <p style="font-size:13px">Hasil pemantauan tiap 24 jam disimpan otomatis dan bisa langsung diunduh sebagai PDF.</p>
+  <div id="histList" style="max-height:50vh;overflow:auto"></div>
+  <div class="acts">
+    <button class="btn" id="btnArchiveNow">Simpan 24 jam sekarang</button>
+    <button class="btn primary" data-close>Tutup</button>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script>
+/* GSR HelioWash — logika UI, grafik real-time, kontrol, log, jadwal, laporan PDF 24 jam */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+
+/* ===== Akun login (tambah sebanyak yang dibutuhkan) ===== */
+const ACCOUNTS = [
+    { email: 'galih', pass: '112233' },
+    { email: 'pakdista', pass: '123' },
+];
+
+/* ===== Konfigurasi ===== */
+const POLL_MS = 1000;
+const MAX_POINTS = 60;
+const LOG_REAL = { every: 60 * 60000, span: 3 * 60000, step: 60000 };
+const LOG_DEMO = { every: 60000, span: 30000, step: 60000 };
+const CYCLE_MS = 4000;
+const MAX_JOBS = 5;
+const RANGE = { v: [10, 15], i: [0, 3], t: [25, 60] };
+const COLOR = { v: '#ff6b5e', i: '#ffc233', t: '#4fd68a' };
+const FMT = { v: 1, i: 2, t: 1 };
+
+/* ===== State ===== */
+let ip = '';
+let buf = { v: [], i: [], t: [], ts: [] };
+let hidden = new Set();
+let hoverX = null;
+let demo = { v: 12.4, i: 1.6, t: 37.5 };
+let sess = null, lastSessStart = 0;
+const dayStr = ts => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const today = () => dayStr(Date.now());
+const DAY_MS = 24 * 3600 * 1000;
+let logs = store.get('hw-log', []);
+Object.keys(localStorage).filter(k => k.startsWith('hw-log-')).forEach(k => {
+  store.get(k, []).forEach(r => logs.push({ ...r, ts: r.ts ?? Date.parse(r.d + 'T' + String(r.w).replace(/\./g, ':')) }));
+  try { localStorage.removeItem(k); } catch {}
+});
+logs = logs.filter(r => r.ts >= Date.now() - DAY_MS).sort((a, b) => a.ts - b.ts);
+store.set('hw-log', logs);
+let reports = store.get('hw-reports', []);   // laporan 24 jam yang sudah selesai
+let period = store.get('hw-period', null);   // periode 24 jam berjalan {start, src, rows:[[ts,v,i,t]]}
+let jobs = store.get('hw-jobs', [{ t: '06:00', c: 3 }, { t: '15:30', c: 2 }]);
+let editIdx = -1;
+
+/* ===== Login & navigasi ===== */
+$('#loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const em = $('#email').value.trim(), pw = $('#pass').value, err = $('#loginErr');
+  if (!em || !pw) { err.textContent = 'Isi email dan password terlebih dahulu.'; err.hidden = false; return; }
+  const ok = ACCOUNTS.some(a => a.email.toLowerCase() === em.toLowerCase() && a.pass === pw);
+  if (!ok) { err.textContent = 'Email atau password salah.'; err.hidden = false; return; }
+  err.hidden = true;
+  $('#who').textContent = 'Akun: ' + em;
+  $('#login').hidden = true; $('#app').hidden = false;
+  drawChart(); autoMqtt();
+});
+$('#btnLogout').onclick = () => { $('#d-logout').close(); $('#app').hidden = true; $('#login').hidden = false; };
+
+const titles = { dash: 'Dashboard', log: 'Data Log', auto: 'Jadwal Otomatis' };
+function goTab(id) {
+  $$('.nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === id));
+  $$('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + id));
+  $('#title').textContent = titles[id];
+  if (id === 'dash') drawChart();
+}
+$$('.nav button').forEach(b => b.onclick = () => goTab(b.dataset.tab));
+
+/* Dialog */
+$$('[data-open]').forEach(b => b.onclick = () => {
+  if (b.dataset.open === 'd-hist') renderHist();
+  $('#' + b.dataset.open).showModal();
+});
+$$('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
+$$('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+
+/* ===== Sumber data ===== */
+function setStatus(ok, text) {
+  $('#pill').classList.toggle('off', !ok);
+  $('#pillTxt').textContent = text;
+}
+function demoSample() {
+  const walk = (x, s, [lo, hi]) => Math.min(hi, Math.max(lo, x + (Math.random() - .5) * s));
+  demo.v = walk(demo.v, .25, [11.5, 13.5]);
+  demo.i = walk(demo.i, .12, [1, 2.4]);
+  demo.t = walk(demo.t, .5, [32, 46]);
+  return { ...demo };
+}
+async function realSample() {
+  if (mq) {
+    if (!mqLast || Date.now() - mqLastAt > MQTT_STALE_MS) throw new Error('Belum ada data');
+    return mqLast;
+  }
+  const r = await fetch(`http://${ip}/data`, { cache: 'no-store' });
+  const j = await r.json();
+  return { v: +(j.v ?? j.voltage), i: +(j.i ?? j.current), t: +(j.t ?? j.temp) };
+}
+async function tick() {
+  let s;
+  try {
+    s = ip ? await realSample() : demoSample();
+    if (ip) setStatus(true, mq ? 'HiveMQ · ESP32' : 'ESP32 ' + ip);
+  } catch {
+    setStatus(false, mq ? 'Menunggu data ESP32' : 'Tidak terhubung');
+    return schedule();
+  }
+  try { push(s); } catch (e) { console.error(e); }
+  schedule();
+}
+function schedule() { setTimeout(tick, POLL_MS); }
+
+function push(s) {
+  const now = Date.now();
+  ['v', 'i', 't'].forEach(k => {
+    buf[k].push(s[k]);
+    if (buf[k].length > MAX_POINTS) buf[k].shift();
+    const t = s[k].toFixed(FMT[k]);
+    $('#m' + k).textContent = t;
+    $('#c' + k).textContent = t;
+  });
+  buf.ts.push(now); if (buf.ts.length > MAX_POINTS) buf.ts.shift();
+  drawChart();
+  try { logStep(s, now); } catch (e) { console.error(e); }
+}
+
+/* ===== Grafik real-time (canvas) ===== */
+const cv = $('#chart'), ctx = cv.getContext('2d');
+new ResizeObserver(drawChart).observe(cv);
+cv.addEventListener('pointermove', e => { hoverX = e.clientX - cv.getBoundingClientRect().left; drawChart(); });
+cv.addEventListener('pointerleave', () => { hoverX = null; drawChart(); });
+$$('.chip').forEach(c => c.onclick = () => {
+  const k = c.dataset.s, on = c.getAttribute('aria-pressed') === 'true';
+  c.setAttribute('aria-pressed', !on);
+  on ? hidden.add(k) : hidden.delete(k);
+  drawChart();
+});
+
+function drawChart() {
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  const dpr = window.devicePixelRatio || 1;
+  if (cv.width !== w * dpr || cv.height !== h * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const pad = { l: 8, r: 8, t: 10, b: 24 }, pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+
+  ctx.strokeStyle = '#26394d'; ctx.lineWidth = 1; ctx.font = '11px system-ui'; ctx.fillStyle = '#7f97ad';
+  for (let g = 0; g <= 4; g++) {
+    const y = pad.t + ph * g / 4;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+  }
+  const n = buf.ts.length;
+  if (n < 2) { ctx.textAlign = 'center'; ctx.fillText('Menunggu data…', w / 2, h / 2); return; }
+
+  const X = i => pad.l + pw * (MAX_POINTS - n + i) / (MAX_POINTS - 1);
+  ctx.textAlign = 'left'; ctx.fillText('60 dtk lalu', pad.l, h - 6);
+  ctx.textAlign = 'right'; ctx.fillText('sekarang', w - pad.r, h - 6);
+
+  ['v', 'i', 't'].forEach(k => {
+    if (hidden.has(k)) return;
+    const [lo, hi] = RANGE[k], Y = val => pad.t + ph * (1 - Math.min(1, Math.max(0, (val - lo) / (hi - lo))));
+    ctx.beginPath();
+    buf[k].forEach((val, i) => i ? ctx.lineTo(X(i), Y(val)) : ctx.moveTo(X(i), Y(val)));
+    ctx.strokeStyle = COLOR[k]; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(n - 1), Y(buf[k][n - 1]), 4, 0, 7); ctx.fillStyle = COLOR[k]; ctx.fill();
+  });
+
+  if (hoverX != null) {
+    let idx = Math.round((hoverX - pad.l) / pw * (MAX_POINTS - 1)) - (MAX_POINTS - n);
+    idx = Math.max(0, Math.min(n - 1, idx));
+    const x = X(idx);
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+    const rows = ['v', 'i', 't'].filter(k => !hidden.has(k)).map(k => [k, buf[k][idx].toFixed(FMT[k])]);
+    const time = new Date(buf.ts[idx]).toLocaleTimeString('id-ID');
+    const bw = 118, bh = 20 + rows.length * 17, bx = x + 12 + bw > w ? x - bw - 12 : x + 12;
+    ctx.fillStyle = 'rgba(8,16,24,.92)'; ctx.fillRect(bx, pad.t + 4, bw, bh);
+    ctx.textAlign = 'left'; ctx.fillStyle = '#a9bccf'; ctx.fillText(time, bx + 8, pad.t + 19);
+    rows.forEach(([k, val], r) => { ctx.fillStyle = COLOR[k]; ctx.fillText(({ v: 'V ', i: 'A ', t: '°C ' })[k] + val, bx + 8, pad.t + 36 + r * 17); });
+  }
+}
+
+/* ===== Data log & pengambilan data berkala ===== */
+const clock = ts => new Date(ts).toLocaleTimeString('id-ID');
+
+function addLog(s, ts) {
+  logs.push({ ts, d: dayStr(ts), w: clock(ts), v: s.v, i: s.i, t: s.t });
+  logs = logs.slice(-1000);
+  pruneLogs(ts);
+  store.set('hw-log', logs);
+  recordPeriod(s, ts);   // catat juga ke periode 24 jam
+  renderLog();
+}
+
+function pruneLogs(now = Date.now()) {
+  const n = logs.length;
+  logs = logs.filter(r => r.ts >= now - DAY_MS);
+  if (logs.length !== n) { store.set('hw-log', logs); renderLog(); }
+}
+setInterval(pruneLogs, 60000);
+
+/* ===== Laporan 24 jam -> Riwayat -> PDF ===== */
+function recordPeriod(s, ts) {
+  const src = ip ? 'ESP32' : 'Demo';
+  if (period && ts - period.start >= DAY_MS) archivePeriod();
+  if (!period) period = { start: ts, src, rows: [] };
+  else if (period.src !== src) period.src = 'Campuran';
+  period.rows.push([ts, s.v, s.i, s.t]);
+  if (period.rows.length > 20000) period.rows.shift();
+  store.set('hw-period', period);
+}
+function archivePeriod() {
+  if (period && period.rows.length) {
+    reports.push({ start: period.start, end: period.rows[period.rows.length - 1][0], src: period.src, rows: period.rows });
+    reports = reports.slice(-30);   // simpan maksimal 30 laporan terakhir
+    store.set('hw-reports', reports);
+  }
+  period = null; store.set('hw-period', null);
+}
+const checkPeriod = () => { if (period && Date.now() - period.start >= DAY_MS) archivePeriod(); };
+setInterval(checkPeriod, 60000); checkPeriod();
+
+function reportPdf(r, name) {
+  if (!window.jspdf) return alert('Library PDF gagal dimuat. Periksa koneksi internet.');
+  const doc = new window.jspdf.jsPDF(), fmt = ts => new Date(ts).toLocaleString('id-ID');
+  const stat = k => { const a = r.rows.map(x => x[k]); return [Math.min(...a), a.reduce((p, c) => p + c, 0) / a.length, Math.max(...a)]; };
+  const head = { fillColor: [15, 31, 46] };
+  doc.setFontSize(16); doc.text('Laporan Pemantauan 24 Jam - GSR HelioWash', 14, 16);
+  doc.setFontSize(10);
+  doc.text(`Mulai   : ${fmt(r.start)}`, 14, 24);
+  doc.text(`Selesai : ${fmt(r.end)}`, 14, 30);
+  doc.text(`Sumber: ${r.src}   |   Jumlah data: ${r.rows.length}`, 14, 36);
+  doc.autoTable({
+    startY: 42, theme: 'grid', headStyles: head,
+    head: [['Parameter', 'Min', 'Rata-rata', 'Maks']],
+    body: [
+      ['Tegangan (V)', ...stat(1).map(x => x.toFixed(2))],
+      ['Arus (A)',     ...stat(2).map(x => x.toFixed(2))],
+      ['Suhu (C)',     ...stat(3).map(x => x.toFixed(1))]
+    ]
+  });
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 8, styles: { fontSize: 8 }, headStyles: head,
+    head: [['No', 'Tanggal', 'Waktu', 'V', 'A', 'C']],
+    body: r.rows.map((x, n) => [n + 1, dayStr(x[0]), clock(x[0]), x[1].toFixed(2), x[2].toFixed(2), x[3].toFixed(1)])
+  });
+  doc.save(name);
+}
+
+function logStep(s, now) {
+  const cfg = ip ? LOG_REAL : LOG_DEMO;
+  if (!sess && now - lastSessStart >= cfg.every) {
+    sess = { start: now, next: now, rows: [] };
+    lastSessStart = now;
+  }
+  if (!sess) return;
+  if (now >= sess.next && now < sess.start + cfg.span) {
+    sess.next += cfg.step;
+    if (sess.next <= now) sess.next = now + cfg.step;
+    sess.rows.push({ w: clock(now), v: s.v, i: s.i, t: s.t });
+    addLog(s, now);
+  }
+  if (now >= sess.start + cfg.span) finishSession();
+}
+
+function finishSession() {
+  sess = null;
+  renderLog();
+}
+
+function resetLogging() {
+  if (sess && sess.rows.length) finishSession();
+  sess = null; lastSessStart = 0;
+}
+
+function renderLog() {
+  const cfg = ip ? LOG_REAL : LOG_DEMO, total = Math.floor(cfg.span / cfg.step);
+  const nextAt = lastSessStart ? new Date(lastSessStart + cfg.every).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+  $('#logEmpty').hidden = logs.length > 0;
+  $('#logSub').textContent = `${logs.length} data · 24 jam terakhir · ` +
+    (sess ? `sedang mengambil data ${sess.rows.length}/${total}` : nextAt ? `pengambilan berikutnya ${nextAt}` : 'menunggu data');
+  $('#logBody').innerHTML = logs.map((r, i) => ({ r, n: i + 1 })).reverse().map(({ r, n }) =>
+    `<div class="tr num"><span class="n">${n}</span><span class="d">${r.d}</span><span>${r.w}</span>` +
+    `<span class="v">${r.v.toFixed(2)}</span><span class="i">${r.i.toFixed(2)}</span><span class="t">${r.t.toFixed(1)}</span></div>`).join('');
+}
+function renderHist() {
+  const rep = reports.map((r, i) => ({ r, i })).reverse().map(({ r, i }) =>
+    `<div class="hist"><div class="info"><b>Laporan 24 jam · ${dayStr(r.start)}</b><br>` +
+    `<small>${clock(r.start)}–${clock(r.end)} · ${r.rows.length} data · ${r.src}</small></div>` +
+    `<button class="btn sm primary" data-pdf="${i}">PDF</button></div>`).join('');
+  $('#histList').innerHTML = rep || '<p>Belum ada laporan 24 jam.</p>';
+  $$('[data-pdf]', $('#histList')).forEach(b => b.onclick = () => {
+    const r = reports[b.dataset.pdf];
+    reportPdf(r, `laporan-24jam-${dayStr(r.start)}.pdf`);
+  });
+}
+$('#btnArchiveNow').onclick = () => {
+  if (!period || !period.rows.length) return alert('Belum ada data pada periode ini.');
+  archivePeriod(); renderHist();
+};
+
+$('#btnPdf').onclick = () => {
+  if (!logs.length) return alert('Belum ada data untuk diekspor.');
+  reportPdf({ start: logs[0].ts, end: logs[logs.length - 1].ts, src: ip ? 'ESP32' : 'Demo',
+              rows: logs.map(r => [r.ts, r.v, r.i, r.t]) }, `data-heliowash-${today()}.pdf`);
+};
+
+/* ===== Kontrol & pembersihan ===== */
+function send(cmd) {
+  if (mq) { if (mq.connected) mq.publish(MQTT_TOPIC_CMD, cmd); return; }
+  if (ip) fetch(`http://${ip}/${cmd}`, { mode: 'no-cors' }).catch(() => {});
+}
+let ctlTouchedAt = 0;
+function ctl(id, key, name) {
+  const sw = $('#' + id), box = sw.closest('.ctl');
+  const paint = () => { box.classList.toggle('on', sw.checked); $('small', box).textContent = sw.checked ? 'AKTIF' : 'MATI'; };
+  sw.onchange = () => { ctlTouchedAt = Date.now(); paint(); send(`${key}?on=${+sw.checked}`); };
+  return { set(v) { sw.checked = v; paint(); } };
+}
+const motor = ctl('swMotor', 'motor'), pump = ctl('swPump', 'pump');
+
+let clean = null;
+function startClean(cycles) {
+  if (mq) { send('clean?cycles=' + cycles); goTab('dash'); return; }
+  if (clean) return;
+  clean = { total: cycles, cur: 1, timer: null };
+  motor.set(true); pump.set(true); send('clean?cycles=' + cycles);
+  showClean(true); paintClean(); goTab('dash');
+  clean.timer = setInterval(nextCycle, CYCLE_MS);
+}
+function nextCycle() {
+  if (!clean) return;
+  if (clean.cur >= clean.total) return stopClean();
+  clean.cur++; paintClean();
+}
+function stopClean() {
+  if (mq) { send('stop'); return; }
+  if (!clean) return;
+  clearInterval(clean.timer); clean = null;
+  motor.set(false); pump.set(false); send('stop'); showClean(false);
+}
+function showClean(on) {
+  $('#cleaning').hidden = $('#btnStop').hidden = !on;
+  $('#btnLimit').hidden = !on || !!mq;
+  $('#idle').hidden = on; $('#btnStart').hidden = on;
+  if (!on) $('#cbar').style.width = '0';
+}
+function paintClean() {
+  $('#cyc').textContent = `${clean.cur} / ${clean.total}`;
+  $('#cbar').style.width = (clean.cur / clean.total * 100) + '%';
+}
+$('#btnStart').onclick = () => startClean(3);
+$('#btnStop').onclick = stopClean;
+$('#btnLimit').onclick = () => { if (clean) { clearInterval(clean.timer); nextCycle(); if (clean) clean.timer = setInterval(nextCycle, CYCLE_MS); } };
+
+/* ===== Jadwal otomatis ===== */
+function renderJobs() {
+  $('#sched').innerHTML = jobs.map((j, i) =>
+    `<div class="job"><div><div class="time num">${j.t}</div><small>${j.c}x siklus</small></div>` +
+    `<div class="row"><button class="btn sm primary" data-run="${i}">Jalankan</button>` +
+    `<button class="btn sm" data-edit="${i}">Ubah</button><button class="btn sm line-red" data-del="${i}">Hapus</button></div></div>`
+  ).join('') + (jobs.length < MAX_JOBS ? '<button class="add" id="btnAdd">+ Tambah jadwal</button>' : '');
+  if ($('#btnAdd')) $('#btnAdd').onclick = () => openJob(-1);
+  $$('[data-run]').forEach(b => b.onclick = () => startClean(jobs[b.dataset.run].c));
+  $$('[data-edit]').forEach(b => b.onclick = () => openJob(+b.dataset.edit));
+  $$('[data-del]').forEach(b => b.onclick = () => { jobs.splice(b.dataset.del, 1); store.set('hw-jobs', jobs); renderJobs(); syncSchedules(); });
+}
+function openJob(i) {
+  editIdx = i;
+  $('#schedTitle').textContent = i < 0 ? 'Tambah jadwal' : 'Ubah jadwal';
+  $('#sTime').value = i < 0 ? '06:00' : jobs[i].t;
+  $('#sCyc').value = i < 0 ? 1 : jobs[i].c;
+  $('#d-sched').showModal();
+}
+$('#btnSaveSched').onclick = () => {
+  const j = { t: $('#sTime').value || '06:00', c: Math.max(1, +$('#sCyc').value || 1) };
+  editIdx < 0 ? jobs.push(j) : (jobs[editIdx] = j);
+  jobs.sort((a, b) => a.t.localeCompare(b.t));
+  store.set('hw-jobs', jobs); renderJobs(); syncSchedules(); $('#d-sched').close();
+};
+let lastMin = '';
+setInterval(() => {
+  if (mq) return;
+  const m = new Date().toTimeString().slice(0, 5);
+  if (m === lastMin) return; lastMin = m;
+  const j = jobs.find(x => x.t === m); if (j) startClean(j.c);
+}, 5000);
+
+/* ===== HiveMQ (MQTT) ===== */
+const MQTT_HOST = '57d3cc927d6c465a9117ee4f3288ccb5.s1.eu.hivemq.cloud';
+const MQTT_USER = 'helliowashgsr';
+const MQTT_PASS = 'qwerty123';
+const MQTT_AUTO = true;
+const MQTT_TOPIC_DATA = 'gsr/helio/data';
+const MQTT_TOPIC_CMD = 'gsr/helio/cmd';
+const MQTT_STALE_MS = 5000;
+let mq = null, mqLast = null, mqLastAt = 0, mqState = null;
+
+function syncEsp() {
+  const st = mqState;
+  if (!st) return;
+  if (Date.now() - ctlTouchedAt > 2000) { motor.set(st.motor); pump.set(st.pump); }
+  showClean(st.auto);
+  if (st.auto) {
+    $('#cyc').textContent = `${st.cycle} / ${st.target}`;
+    $('#cbar').style.width = (st.target ? Math.min(100, st.cycle / st.target * 100) : 0) + '%';
+  }
+}
+
+function syncSchedules() {
+  if (!mq || !mq.connected) return;
+  for (let n = 0; n < MAX_JOBS; n++) {
+    const j = jobs[n];
+    if (j) {
+      const [hh, mm] = j.t.split(':').map(Number);
+      send(`sched?i=${n}&h=${hh}&m=${mm}&c=${j.c}`);
+    } else {
+      send(`sched?i=${n}&h=-1&m=-1&c=0`);
+    }
+  }
+}
+
+function mqError(msg) { const e = $('#mqErr'); e.textContent = msg; e.hidden = !msg; }
+function disconnectMqtt() {
+  resetLogging();
+  if (mq) { mq.end(true); mq = null; }
+  mqLast = null; mqState = null; $('#pill').title = '';
+  if (!clean) showClean(false);
+}
+function autoMqtt() { if (MQTT_AUTO && !mq && !ip) connectMqtt(false); }
+
+function connectMqtt(manual) {
+  if (MQTT_USER.startsWith('ISI_') || MQTT_PASS.startsWith('ISI_')) {
+    if (manual) mqError('Isi MQTT_USER dan MQTT_PASS di kode (bagian HiveMQ).');
+    return;
+  }
+  if (typeof mqtt === 'undefined') {
+    if (manual) mqError('Library MQTT gagal dimuat. Periksa koneksi internet.');
+    return;
+  }
+  mqError('');
+  disconnectMqtt();
+  ip = 'HiveMQ'; buf = { v: [], i: [], t: [], ts: [] };
+  $('#liveTag').textContent = 'Data langsung dari ESP32 (HiveMQ)';
+  setStatus(false, 'Menghubungkan…'); renderLog();
+
+  const c = mq = mqtt.connect(`wss://${MQTT_HOST}:8884/mqtt`, {
+    username: MQTT_USER,
+    password: MQTT_PASS,
+    clientId: 'hw-web-' + Math.random().toString(16).slice(2, 8),
+    reconnectPeriod: 3000,
+    connectTimeout: 10000
+  });
+  c.on('connect', () => {
+    if (mq !== c) return;
+    c.subscribe(MQTT_TOPIC_DATA);
+    setStatus(false, 'Menunggu data ESP32');
+    syncSchedules();
+  });
+  c.on('message', (topic, payload) => {
+    if (mq !== c) return;
+    try {
+      const j = JSON.parse(payload.toString());
+      const s = { v: +(j.v ?? j.voltage), i: +(j.i ?? j.current), t: +(j.t ?? j.temp) };
+      if ([s.v, s.i, s.t].every(Number.isFinite)) {
+        mqLast = s; mqLastAt = Date.now();
+        mqState = ('cycle' in j) ? { auto: j.auto === true || j.auto === 1, cycle: +j.cycle || 0, target: +j.target || 0, motor: !!+j.motor, pump: !!+j.pump } : null;
+        syncEsp();
+      }
+    } catch {}
+  });
+  c.on('close', () => { if (mq === c) setStatus(false, 'HiveMQ terputus'); });
+  c.on('error', err => {
+    if (mq !== c) return;
+    setStatus(false, 'HiveMQ gagal');
+    $('#pill').title = err.message;
+  });
+}
+$('#btnMqtt').onclick = () => { connectMqtt(true); if (mq) $('#d-wifi').close(); };
+
+/* ===== Mulai ===== */
+function prefill() {
+  const now = Date.now();
+  for (let n = MAX_POINTS; n > 0; n--) {
+    const s = demoSample();
+    ['v', 'i', 't'].forEach(k => buf[k].push(s[k]));
+    buf.ts.push(now - n * POLL_MS);
+  }
+}
+prefill();
+renderLog(); renderJobs(); tick();
+</script>
+</body>
+</html>
